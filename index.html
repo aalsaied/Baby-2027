@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>الصورة السرية | سباق البازل</title><script src="/socket.io/socket.io.js"></script>
+<style>
+:root{--navy:#10213b;--blue:#2f6598;--gold:#e8c987;--ink:#18243a;--muted:#6d7890;--paper:#f3f6fa}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:780px;margin:auto;padding:16px;min-height:100vh}.hero{background:linear-gradient(145deg,#101d35,#315d88);color:white;border-radius:22px;padding:23px 18px;text-align:center;box-shadow:0 12px 30px #12233b20}
+.hero h1{font-size:27px;margin:8px 0}.hero p{margin:5px 0;color:#dbe8f6;font-size:13px}
+.card{background:white;border:1px solid #e1e6ef;border-radius:17px;padding:16px;margin-top:13px;box-shadow:0 5px 18px #1a2a4010}
+h2{font-size:17px;margin:0 0 12px}.muted{color:var(--muted);font-size:13px}.field{width:100%;padding:13px;border:1px solid #d9e0eb;border-radius:11px;font:inherit;margin:5px 0 12px;background:#fbfcfe}
+.btn{border:0;border-radius:12px;padding:13px 16px;background:var(--blue);color:white;font:700 15px system-ui;width:100%;cursor:pointer;margin-top:8px}.btn.alt{background:#eaf0f7;color:#244666}.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}.hidden{display:none!important}.tag{display:inline-block;background:#eaf1f8;color:#315b82;border-radius:99px;padding:5px 10px;font-size:12px}
+.team{border-radius:13px;padding:12px;color:white;text-align:center;background:#285681;overflow-wrap:anywhere}.team.second{background:#596c87}.team strong{font-size:24px;display:block}
+.board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;direction:ltr}.piece,.hole{aspect-ratio:1;min-width:0;border-radius:4px;padding:0;overflow:hidden}.piece{border:1px solid #ffffff80;background-repeat:no-repeat;box-shadow:0 1px 3px #0002;cursor:pointer}.piece.sel{outline:3px solid #d39d35;outline-offset:1px}.hole{border:1px dashed #aab7c8;background:#f0f3f8}.hole.done{border:1px solid #5aab83}.tray{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;direction:ltr}
+.bar{height:9px;border-radius:20px;background:#e9edf3;overflow:hidden}.bar>div{height:100%;background:#4d8dbb;transition:width .2s}.status{padding:12px;border-radius:12px;background:#edf2f8;text-align:center;font-size:13px;margin-top:10px}
+.win{background:linear-gradient(145deg,#112c4d,#3477ae);color:white;border-radius:22px;padding:24px 18px;text-align:center}.win h2{font-size:30px;margin:12px 0}.win .winner{font-size:27px;font-weight:900;color:#c5e5ff}.big{font-size:66px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.tab{border:1px solid #dce3ed;border-radius:10px;padding:10px 4px;background:#f7f9fc;font-weight:650;cursor:pointer}.tab.active{background:#dcebf8;border-color:#5b8bb5;color:#204e78}
+@media(min-width:600px){main{padding:24px}.board{gap:5px}.tray{gap:7px}}
+</style></head><body><main>
+<header class="hero"><div style="letter-spacing:3px;font-size:11px">THE SECRET PICTURE</div><h1>🧩 الصورة السرية</h1><p>رابط واحد • لوحة أدمن • سباق 48 قطعة</p><div style="font-size:34px;margin-top:10px">☾ ✦ ✧ ✦ ☾</div></header>
+
+<section id="home" class="card">
+<h2>أهلاً بك في لعبة الصورة السرية</h2><p class="muted">اختر طريقة الدخول. جميع المشاركين يستخدمون رابط الموقع نفسه.</p>
+<div class="tabs"><button class="tab active" data-mode="admin">👑 أدمن</button><button class="tab" data-mode="team">🧩 فريق</button><button class="tab" data-mode="display">📺 شاشة</button></div>
+<div id="adminForm" class="modeForm" style="margin-top:16px">
+<h2>إنشاء غرفة جديدة</h2>
+<label>اسم الفريق الأول</label><input id="n0" class="field" maxlength="24" placeholder="اسم الفريق الأول">
+<label>رمز دخول الفريق الأول (تحدده أنت)</label><input id="c0" class="field" maxlength="12" placeholder="مثلاً 4821">
+<label>اسم الفريق الثاني</label><input id="n1" class="field" maxlength="24" placeholder="اسم الفريق الثاني">
+<label>رمز دخول الفريق الثاني (تحدده أنت)</label><input id="c1" class="field" maxlength="12" placeholder="مثلاً 7392">
+<label>رمز الأدمن السري</label><input id="pin" type="password" class="field" maxlength="32" placeholder="رمز خاص لا تشاركه">
+<button id="create" class="btn">إنشاء المنافسة</button>
+<div id="createErr" class="muted"></div>
+</div>
+<div id="teamForm" class="modeForm hidden" style="margin-top:16px">
+<h2>دخول الفريق</h2><label>رمز الغرفة</label><input id="teamRoom" class="field" placeholder="رمز الغرفة الذي يعطيك الأدمن">
+<label>اختر اسم فريقك</label><select id="teamIndex" class="field"><option value="0">الفريق الأول</option><option value="1">الفريق الثاني</option></select>
+<label>رمز دخول فريقك</label><input id="teamCode" type="password" class="field" placeholder="رمز الدخول الذي أعطاك الأدمن">
+<button id="joinTeam" class="btn">دخول البازل</button><div id="teamErr" class="muted"></div>
+</div>
+<div id="displayForm" class="modeForm hidden" style="margin-top:16px">
+<h2>فتح شاشة التلفزيون</h2><label>رمز الغرفة</label><input id="displayRoom" class="field" placeholder="رمز الغرفة">
+<button id="joinDisplay" class="btn">فتح شاشة العرض</button><div id="displayErr" class="muted"></div>
+</div>
+<div id="adminPanel" class="hidden">
+<div class="status">تم إنشاء الغرفة بنجاح. شارك رابط الموقع نفسه ورمز الغرفة ورمز كل فريق مع صاحبه.</div>
+<div class="card"><b>رمز الغرفة</b><div id="roomCode" style="font-size:26px;font-weight:900;letter-spacing:3px"></div><button id="copyLink" class="btn alt">نسخ رابط الموقع</button></div>
+<div class="card"><b>حالة الفرق</b><div id="adminTeams" class="muted" style="margin-top:9px"></div></div>
+<button id="adminStart" class="btn" disabled>ابدأ المنافسة</button><p id="adminStatus" class="muted"></p>
+</div>
+</section>
+
+<section id="teamGame" class="card hidden">
+<div class="tag">منطقة الفريق</div><h2 id="myTeamName" style="margin-top:10px"></h2>
+<div class="row"><div class="team"><span id="tName0">الفريق الأول</span><strong id="tScore0">0</strong></div><div class="team second"><span id="tName1">الفريق الثاني</span><strong id="tScore1">0</strong></div></div>
+<p class="muted" id="teamStatus">بانتظار بدء المنافسة من الأدمن.</p><div class="bar"><div id="teamProgress" style="width:0%"></div></div>
+<div class="card"><b>لوحة البازل</b><div id="board" class="board" style="margin-top:10px"></div><p class="muted">اختر قطعة ثم اضغط مكانها الصحيح.</p></div>
+<div class="card"><b>القطع المتاحة</b><div id="tray" class="tray" style="margin-top:10px"></div></div>
+<div class="status" id="feedback">بانتظار بدء اللعبة.</div>
+</section>
+
+<section id="displayPanel" class="card hidden">
+<div class="tag">شاشة العرض – متابعة مباشرة</div><h2 style="margin-top:10px">غرفة المنافسة</h2>
+<div class="row"><div class="team"><span id="dName0">الفريق الأول</span><strong id="dScore0">0</strong><small id="dState0">لم يدخل بعد</small></div><div class="team second"><span id="dName1">الفريق الثاني</span><strong id="dScore1">0</strong><small id="dState1">لم يدخل بعد</small></div></div>
+<div id="displayStatus" class="status">بانتظار دخول الفريقين.</div>
+</section>
+
+<section id="winner" class="hidden card"><div class="win"><div style="letter-spacing:3px;font-size:11px">THE WINNER</div><div class="big">🏆</div><h2>الفائز في التحدي!</h2><div id="winnerName" class="winner"></div><div class="big" style="margin:12px 0">💙</div><h2>إنه ولد!</h2><p>مبروك للعائلة والأمير الصغير 💙</p><div id="countdown" style="font-size:48px;font-weight:900;margin-top:14px">10</div><p>دقات قلب... ثم الاحتفال!</p></div></section>
+</main>
+<script>
+const socket=io();let mode='admin',roomId=null,role=null,teamIndex=null,room=null,selected=null,placed=new Set(),started=false,winnerShown=false,restoredCount=0;
+const $=id=>document.getElementById(id);
+function only(id){['home','teamGame','displayPanel','winner'].forEach(x=>$(x).classList.toggle('hidden',x!==id));}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));mode=b.dataset.mode;['adminForm','teamForm','displayForm'].forEach((id,i)=>$(id).classList.toggle('hidden',['admin','team','display'][i]!==mode));$('adminPanel').classList.add('hidden');});
+function enterRoom(id,kind,credential,idx,callback){socket.emit('room:enter',{roomId:id,mode:kind,credential,teamIndex:idx},res=>{if(res?.error)return callback(res.error);roomId=id;role=kind;teamIndex=idx;render(res.room);callback(null,res.room);});}
+$('create').onclick=()=>{const names=[$('n0').value.trim(),$('n1').value.trim()],teamCodes=[$('c0').value.trim(),$('c1').value.trim()],pin=$('pin').value;if(names.some(x=>!x)||teamCodes.some(x=>!x)||!pin)return $('createErr').textContent='أكمل أسماء الفرق ورموزها ورمز الأدمن.';socket.emit('admin:create',{names,teamCodes,pin},res=>{if(res?.error)return $('createErr').textContent=res.error;roomId=res.roomId;role='admin';render(res.room);$('adminPanel').classList.remove('hidden');$('roomCode').textContent=roomId;$('copyLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+location.pathname);$('copyLink').textContent='تم النسخ ✓';}catch(e){$('copyLink').textContent='انسخ الرابط من شريط العنوان';}};});};
+$('joinTeam').onclick=()=>{const id=$('teamRoom').value.trim().toUpperCase(),idx=Number($('teamIndex').value),credential=$('teamCode').value;enterRoom(id,'team',credential,idx,err=>{if(err)$('teamErr').textContent=err;else{only('teamGame');$('myTeamName').textContent=room.teams[idx].name;buildBoard(room.teams[idx].placedIndices||[]);}});};
+$('joinDisplay').onclick=()=>{const id=$('displayRoom').value.trim().toUpperCase();enterRoom(id,'display','',null,err=>{if(err)$('displayErr').textContent=err;else only('displayPanel');});};
+function render(r){room=r;if(!r)return;for(let i=0;i<2;i++){const t=r.teams[i];['t','d'].forEach(prefix=>{const name=$(prefix+'Name'+i),score=$(prefix+'Score'+i);if(name)name.textContent=t.name;if(score)score.textContent=t.pieces;});const state=$('dState'+i);if(state)state.textContent=t.joined?'متصل':'بانتظار الدخول';}
+if(role==='admin'){$('adminTeams').innerHTML=r.teams.map((t,i)=>`${i===0?'💙':'🩷'} ${escapeHtml(t.name)} — ${t.joined?'متصل ✓':'بانتظار الدخول'}`).join('<br>');$('adminStart').disabled=!(r.teams.every(t=>t.joined)&&!r.started);$('adminStatus').textContent=r.started?'المنافسة بدأت.':r.teams.every(t=>t.joined)?'الفريقان جاهزان. يمكنك البدء.':'بانتظار دخول الفريقين.';}
+if(role==='display')$('displayStatus').textContent=r.started?'المنافسة جارية الآن.':r.teams.every(t=>t.joined)?'الفريقان جاهزان، الأدمن سيبدأ قريباً.':'بانتظار دخول الفريقين.';
+if(role==='team'){$('teamStatus').textContent=r.started?'المنافسة بدأت! أكمل البازل قبل الفريق الآخر.':'بانتظار بدء المنافسة من الأدمن.';started=r.started;}}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+$('adminStart').onclick=()=>socket.emit('admin:start',{roomId},res=>{if(res?.error)$('adminStatus').textContent=res.error;});
+function art(){return `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><defs><linearGradient id="s" x2="0" y2="1"><stop stop-color="#101d38"/><stop offset=".6" stop-color="#405c83"/><stop offset="1" stop-color="#172a47"/></linearGradient><radialGradient id="g"><stop stop-color="#f8dfad" stop-opacity=".7"/><stop offset="1" stop-color="#f8dfad" stop-opacity="0"/></radialGradient></defs><rect width="600" height="800" fill="url(#s)"/><circle cx="300" cy="370" r="310" fill="url(#g)"/><g fill="#fff0c8"><circle cx="62" cy="85" r="5"/><circle cx="505" cy="90" r="4"/><circle cx="95" cy="250" r="4"/><circle cx="515" cy="295" r="5"/><circle cx="80" cy="490" r="3"/><circle cx="505" cy="570" r="4"/><circle cx="155" cy="150" r="3"/><circle cx="420" cy="190" r="3"/></g><g fill="none" stroke="#fff0c6" stroke-width="5"><path d="M135 155l10 25 25 10-25 10-10 25-10-25-25-10 25-10z"/><path d="M460 390l10 24 24 10-24 10-10 24-10-24-24-10 24-10z"/></g><path d="M425 245a145 145 0 1 1-230 0 117 117 0 1 0 230 0z" fill="#f4dba0" stroke="#f7e9c5" stroke-width="7"/><path d="M100 620q200-90 400 0" fill="none" stroke="#e5c88a" stroke-width="5" opacity=".7"/><text x="300" y="710" fill="#fff1ca" font-size="32" font-weight="bold" text-anchor="middle" font-family="sans-serif">THE SECRET</text><text x="300" y="755" fill="#fff1ca" font-size="18" letter-spacing="6" text-anchor="middle" font-family="sans-serif">BABY REVEAL</text></svg>`;}
+const artBg='url("data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art())+'")';
+function pieceStyle(i){return `background-image:${artBg};background-size:600% 800%;background-position:${i%6*20}% ${Math.floor(i/6)*100/7}%`;}
+function buildBoard(restoredIndices=[]){placed.clear();selected=null;$('board').innerHTML='';$('tray').innerHTML='';const restored=new Set(restoredIndices);for(let i=0;i<48;i++){let h=document.createElement('button');h.className='hole'+(restored.has(i)?' done':'');if(restored.has(i))h.style=pieceStyle(i);h.onclick=()=>place(i);$('board').append(h);if(restored.has(i))placed.add(i);}let order=Array.from({length:48},(_,i)=>i).filter(i=>!restored.has(i));for(let i=order.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}order.forEach(i=>{let p=document.createElement('button');p.className='piece';p.dataset.i=i;p.style=pieceStyle(i);p.onclick=()=>pick(i,p);$('tray').append(p);});$('teamProgress').style.width=placed.size/48*100+'%';$('feedback').textContent=placed.size?'تم استعادة تقدمك: '+placed.size+' / 48':'بانتظار بدء اللعبة.';}
+function pick(i,p){if(!started||room?.winner!==null&&room?.winner!==undefined)return;selected=i;document.querySelectorAll('#tray .piece').forEach(x=>x.classList.remove('sel'));p.classList.add('sel');$('feedback').textContent='حدد مكان القطعة في اللوحة.';}
+function place(i){if(!started)return $('feedback').textContent='انتظر بدء المنافسة من الأدمن.';if(selected===null)return $('feedback').textContent='اختر قطعة أولاً.';if(i===selected){placed.add(i);$('board').children[i].classList.add('done');$('board').children[i].style=pieceStyle(i);$('tray').querySelector('[data-i="'+i+'"]').remove();selected=null;$('teamProgress').style.width=placed.size/48*100+'%';$('feedback').textContent='قطعة صحيحة! '+placed.size+' / 48';socket.emit('team:progress',{pieces:placed.size,pieceIndex:i},res=>{if(res?.error)$('feedback').textContent=res.error;});}else{selected=null;document.querySelectorAll('#tray .piece').forEach(x=>x.classList.remove('sel'));$('feedback').textContent='مكان غير صحيح، حاول مرة أخرى.';}}
+socket.on('room:update',render);
+socket.on('game:started',()=>{started=true;if(role==='team')$('teamStatus').textContent='بدأ السباق! بالتوفيق.';if(role==='display')$('displayStatus').textContent='انطلقت المنافسة!';});
+socket.on('game:winner',w=>{started=false;only('winner');$('winnerName').textContent=w.name;let n=10;$('countdown').textContent=n;const timer=setInterval(()=>{n--;if(n>=0)$('countdown').textContent=n;if(n<=0)clearInterval(timer);},1000);});
+</script></body></html>
